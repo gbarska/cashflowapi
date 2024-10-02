@@ -1,5 +1,4 @@
 ﻿using CashFlow.Domain.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CashFlow.Infrastructure.DataAccess

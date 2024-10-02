@@ -1,9 +1,8 @@
 ﻿using CashFlow.Application.UseCases.Expenses;
-using CashFlow.Application.UseCases.Expenses.Register;
-using CashFlow.Communication.Enums;
 using CashFlow.Exception;
 using Validators.Tests.Requests;
 using FluentAssertions;
+using CashFlow.Domain.Enums;
 
 namespace Validators.Tests.Expenses.Register
 {

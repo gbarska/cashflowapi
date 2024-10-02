@@ -24,7 +24,7 @@ public class ExceptionFilter : IExceptionFilter
         }
         else
         {
-            ThrowUnkowError(context);
+            HandleUnkowError(context);
         }
 
         _unitOfWork.Rollback();
@@ -40,7 +40,7 @@ public class ExceptionFilter : IExceptionFilter
         context.Result = new ObjectResult(errorResponse);
     }
 
-    private void ThrowUnkowError(ExceptionContext context)
+    private void HandleUnkowError(ExceptionContext context)
     {
         var errorResponse = new ErrorResponse(ResourceErrorMessages.UNKNOWN_ERROR);
 
