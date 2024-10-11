@@ -1,6 +1,6 @@
 ﻿using CashFlow.Domain.Repositories;
 
-namespace CashFlow.Infrastructure;
+namespace CashFlow.Api.Middleware;
 
 public class TransactionMiddleware
 {

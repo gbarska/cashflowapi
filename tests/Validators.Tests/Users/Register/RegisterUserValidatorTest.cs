@@ -1,106 +1,80 @@
 ﻿using CashFlow.Application.UseCases.Users.Register;
 using CashFlow.Exception;
+using CommonTestUtilities.Requests;
 using FluentAssertions;
-using Validators.Tests.Requests;
 
-namespace Validators.Tests.Users.Register
+namespace Validators.Tests.Users.Register;
+public class RegisterUserValidatorTest
 {
-    public class RegisterUserValidatorTest
+    [Fact]
+    public void Success()
     {
-        [Fact]
-        public void Success()
-        {
-            // Arrange
-            var validator = new RegisterUserValidator();
-            var request = RequestRegisterUserJsonBuilder.Build();
+        //Arrange
+        var validator = new RegisterUserValidator();
+        var request = RequestRegisterUserJsonBuilder.Build();
 
-            // Act
-            var result = validator.Validate(request);
+        //Act
+        var result = validator.Validate(request);
 
-            // Assert
-            result.IsValid.Should().BeTrue();
-        }
+        //Assert
+        result.IsValid.Should().BeTrue();
+    }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("     ")]
-        [InlineData(null)]
-        public void ErrorNameEmpty(string name)
-        {
-            // Arrange
-            var validator = new RegisterUserValidator();
-            var request = RequestRegisterUserJsonBuilder.Build();
-            request.Name = name;
+    [Theory]
+    [InlineData("")]
+    [InlineData("      ")]
+    [InlineData(null)]
+    public void Error_Name_Empty(string name)
+    {
+        var validator = new RegisterUserValidator();
+        var request = RequestRegisterUserJsonBuilder.Build();
+        request.Name = name;
 
-            // Act
-            var result = validator.Validate(request);
+        var result = validator.Validate(request);
 
-            // Assert
-            result.IsValid.Should().BeFalse();
-            result.Errors
-                .Should()
-                .ContainSingle().And
-                .Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.NAME_EMPTY));
-        }
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle().And.Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.NAME_EMPTY));
+    }
 
+    [Theory]
+    [InlineData("")]
+    [InlineData("      ")]
+    [InlineData(null)]
+    public void Error_Email_Empty(string email)
+    {
+        var validator = new RegisterUserValidator();
+        var request = RequestRegisterUserJsonBuilder.Build();
+        request.Email = email;
 
-        [Theory]
-        [InlineData("")]
-        [InlineData("     ")]
-        [InlineData(null)]
-        public void ErrorEmailEmpty(string email)
-        {
-            // Arrange
-            var validator = new RegisterUserValidator();
-            var request = RequestRegisterUserJsonBuilder.Build();
-            request.Email = email;
+        var result = validator.Validate(request);
 
-            // Act
-            var result = validator.Validate(request);
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle().And.Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.EMAIL_EMPTY));
+    }
 
-            // Assert
-            result.Errors
-                .Should()
-                .ContainSingle().And
-                .Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.EMAIL_EMPTY));
-        }
+    [Fact]
+    public void Error_Email_Invalid()
+    {
+        var validator = new RegisterUserValidator();
+        var request = RequestRegisterUserJsonBuilder.Build();
+        request.Email = "welisson.com";
 
-        [Fact]
-        public void ErrorEmailInvalid()
-        {
-            // Arrange
-            var validator = new RegisterUserValidator();
-            var request = RequestRegisterUserJsonBuilder.Build();
-            request.Email = "wellingtonhlc.com";
+        var result = validator.Validate(request);
 
-            // Act
-            var result = validator.Validate(request);
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle().And.Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.EMAIL_INVALID));
+    }
 
-            // Assert
-            result.IsValid.Should().BeFalse();
-            result.Errors
-                .Should()
-                .ContainSingle().And
-                .Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.EMAIL_INVALID));
-        }
+    [Fact]
+    public void Error_Password_Empty()
+    {
+        var validator = new RegisterUserValidator();
+        var request = RequestRegisterUserJsonBuilder.Build();
+        request.Password = string.Empty;
 
-        [Fact]
-        public void ErrorPasswordEmpty()
-        {
-            // Arrange
-            var validator = new RegisterUserValidator();
-            var request = RequestRegisterUserJsonBuilder.Build();
-            request.Password = string.Empty;
+        var result = validator.Validate(request);
 
-            // Act
-            var result = validator.Validate(request);
-
-            // Assert
-            result.IsValid.Should().BeFalse();
-            result.Errors
-                .Should()
-                .ContainSingle().And
-                .Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.INVALID_PASSWORD));
-        }
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().ContainSingle().And.Contain(e => e.ErrorMessage.Equals(ResourceErrorMessages.INVALID_PASSWORD));
     }
 }

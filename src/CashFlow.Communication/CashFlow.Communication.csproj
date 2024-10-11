@@ -6,9 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\CashFlow.Exception\CashFlow.Exception.csproj" />
-    <ProjectReference Include="..\CashFlowDomain\CashFlow.Domain.csproj" />
-  </ItemGroup>
-
 </Project>

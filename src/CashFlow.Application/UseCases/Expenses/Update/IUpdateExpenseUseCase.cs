@@ -1,9 +1,7 @@
 ﻿using CashFlow.Communication.Requests;
 
-namespace CashFlow.Application.UseCases.Expenses.Update
+namespace CashFlow.Application.UseCases.Expenses.Update;
+public interface IUpdateExpenseUseCase
 {
-    public interface IUpdateExpenseUseCase
-    {
-        Task Execute(long id, ExpenseRequest request);
-    }
+    Task Execute(long id, RequestExpenseJson request);
 }

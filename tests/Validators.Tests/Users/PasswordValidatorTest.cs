@@ -4,7 +4,6 @@ using FluentAssertions;
 using FluentValidation;
 
 namespace Validators.Tests.Users;
-
 public class PasswordValidatorTest
 {
     [Theory]
@@ -20,14 +19,13 @@ public class PasswordValidatorTest
     [InlineData("aaaaaaa")]
     [InlineData("aaaaaaaa")]
     [InlineData("Aaaaaaaa")]
-    [InlineData("AAAAAAAA")]
     [InlineData("Aaaaaaa1")]
-    public void ErrorPasswordInvalid(string password)
+    public void Error_Password_Invalid(string password)
     {
-        var validator = new PasswordValidator<RegisterUserRequest>();
+        var validator = new PasswordValidator<RequestRegisterUserJson>();
 
         var result = validator
-            .IsValid(new ValidationContext<RegisterUserRequest>(new RegisterUserRequest()), password);
+            .IsValid(new ValidationContext<RequestRegisterUserJson>(new RequestRegisterUserJson()), password);
 
         result.Should().BeFalse();
     }

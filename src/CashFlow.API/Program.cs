@@ -1,9 +1,15 @@
-using CashFlow.API.Filters;
-using CashFlow.API.Middleware;
+using CashFlow.Api.Filters;
+using CashFlow.Api.Middleware;
+using CashFlow.Api.Token;
 using CashFlow.Application;
+using CashFlow.Domain.Security.Tokens;
 using CashFlow.Infrastructure;
+using CashFlow.Infrastructure.DataAccess;
+using CashFlow.Infrastructure.Extensions;
 using CashFlow.Infrastructure.Migrations;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -49,6 +55,10 @@ builder.Services.AddMvc(options => options.Filters.Add(typeof(ExceptionFilter)))
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
 
+builder.Services.AddScoped<ITokenProvider, HttpContextTokenValue>();
+
+builder.Services.AddHttpContextAccessor();
+
 var signingKey = builder.Configuration.GetValue<string>("Settings:Jwt:SigningKey");
 
 builder.Services.AddAuthentication(config =>
@@ -66,7 +76,19 @@ builder.Services.AddAuthentication(config =>
     };
 });
 
+builder.Services.AddHealthChecks().AddDbContextCheck<CashFlowDbContext>();
+
 var app = builder.Build();
+
+app.MapHealthChecks("/Health", new HealthCheckOptions
+{
+    AllowCachingResponses = false,
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable,
+    }
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -77,14 +99,6 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<CultureMiddleware>();
 app.UseMiddleware<TransactionMiddleware>();
 
-app.UseCors(options =>
-{
-    options.WithOrigins("*");
-
-    options.AllowAnyMethod();
-    options.AllowAnyHeader();
-});
-
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
@@ -92,12 +106,18 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-await MigrateDataBase();
+if(builder.Configuration.IsTestEnvironment() == false)
+{
+    await MigrateDatabase();
+}
 
 app.Run();
 
-async Task MigrateDataBase()
+async Task MigrateDatabase()
 {
     await using var scope = app.Services.CreateAsyncScope();
-    await DataBaseMigration.MigrateDataBase(scope.ServiceProvider);
+
+    await DataBaseMigration.MigrateDatabase(scope.ServiceProvider);
 }
+
+public partial class Program { }

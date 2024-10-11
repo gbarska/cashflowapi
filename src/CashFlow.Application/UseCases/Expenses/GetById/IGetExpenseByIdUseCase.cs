@@ -3,5 +3,5 @@
 namespace CashFlow.Application.UseCases.Expenses.GetById;
 public interface IGetExpenseByIdUseCase
 {
-    Task<ExpenseResponse> Execute(long id);
+    Task<ResponseExpenseJson> Execute(long id);
 }

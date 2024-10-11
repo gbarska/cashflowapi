@@ -5,45 +5,45 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 
-namespace CashFlow.Domain.Security
+namespace CashFlow.Infrastructure.Security.Tokens;
+internal class JwtTokenGenerator : IAccessTokenGenerator
 {
-    internal class JwtTokenGenerator : IAccessTokenGenerator
+    private readonly uint _expirationTimeMinutes;
+    private readonly string _signingKey;
+
+    public JwtTokenGenerator(uint expirationTimeMinutes, string signingKey)
     {
-        private readonly uint _expirationTimeInMinutes;
-        private readonly string _signingKey;
+        _expirationTimeMinutes = expirationTimeMinutes;
+        _signingKey = signingKey;
+    }
 
-        public JwtTokenGenerator(uint expirationTimeInMinutes, string signingKey)
+    public string Generate(User user)
+    {
+        var claims = new List<Claim>()
         {
-            _expirationTimeInMinutes = expirationTimeInMinutes;
-            _signingKey = signingKey;
-        }
+            new Claim(ClaimTypes.Name, user.Name),
+            new Claim(ClaimTypes.Sid, user.UserIdentifier.ToString()),
+            new Claim(ClaimTypes.Role, user.Role)
+        };
 
-        public string Generate(User user)
+        var tokenDescriptor = new SecurityTokenDescriptor
         {
-            var claims = new List<Claim>()
-            {
-                new(ClaimTypes.Name, user.Name),
-                new(ClaimTypes.Sid, user.UserIdentifier.ToString()),
-            };
+            Expires = DateTime.UtcNow.AddMinutes(_expirationTimeMinutes),
+            SigningCredentials = new SigningCredentials(SecurityKey(), SecurityAlgorithms.HmacSha256Signature),
+            Subject = new ClaimsIdentity(claims)
+        };
 
-            var tokenDescription = new SecurityTokenDescriptor
-            {
-                Expires = DateTime.UtcNow.AddMinutes(_expirationTimeInMinutes),
-                SigningCredentials = new SigningCredentials(SecurityKey(), SecurityAlgorithms.HmacSha256Signature),
-                Subject = new ClaimsIdentity(claims)
-            };
+        var tokenHandler = new JwtSecurityTokenHandler();
+        
+        var securityToken = tokenHandler.CreateToken(tokenDescriptor);
 
-            var tokenHandler = new JwtSecurityTokenHandler();
+        return tokenHandler.WriteToken(securityToken);
+    }
 
-            var securityToken = tokenHandler.CreateToken(tokenDescription);
+    private SymmetricSecurityKey SecurityKey()
+    {
+        var key = Encoding.UTF8.GetBytes(_signingKey);
 
-            return tokenHandler.WriteToken(securityToken);
-        }
-
-        private SymmetricSecurityKey SecurityKey()
-        {
-            var key = Encoding.UTF8.GetBytes(_signingKey);
-            return new SymmetricSecurityKey(key);
-        }
+        return new SymmetricSecurityKey(key);
     }
 }

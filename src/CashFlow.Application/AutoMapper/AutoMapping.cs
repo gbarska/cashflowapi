@@ -3,30 +3,34 @@ using CashFlow.Communication.Requests;
 using CashFlow.Communication.Responses;
 using CashFlow.Domain.Entities;
 
-namespace CashFlow.Application.AutoMapper
+namespace CashFlow.Application.AutoMapper;
+public class AutoMapping : Profile
 {
-    public class AutoMapping : Profile
+    public AutoMapping()
     {
-        public AutoMapping()
-        {
-            RequestToEntity();
-            EntityToResponse();
-        }
+        RequestToEntity();
+        EntityToResponse();
+    }
 
-        private void RequestToEntity()
-        {
-            CreateMap<ExpenseRequest, Expense>();
-            CreateMap<RegisterUserRequest, User>()
-                .ForMember(dest => dest.Password, config => config.Ignore());
-        }
+    private void RequestToEntity()
+    {
+        CreateMap<RequestRegisterUserJson, User>()
+            .ForMember(dest => dest.Password, config => config.Ignore());
 
-        private void EntityToResponse()
-        {
-            CreateMap<Expense, RegisterExpenseResponse>();
-            CreateMap<Expense, ShortExpenseResponse>();
-            CreateMap<Expense, ExpenseResponse>();
-            CreateMap<User, RegisteredUserResponse>();
-        }
+        CreateMap<RequestExpenseJson, Expense>()
+            .ForMember(dest => dest.Tags, config => config.MapFrom(source => source.Tags.Distinct()));
+
+        CreateMap<Communication.Enums.Tag, Tag>()
+            .ForMember(dest => dest.Value, config => config.MapFrom(source => source));
+    }
+
+    private void EntityToResponse()
+    {
+        CreateMap<Expense, ResponseExpenseJson>()
+            .ForMember(dest => dest.Tags, config => config.MapFrom(source => source.Tags.Select(tag => tag.Value)));
+
+        CreateMap<Expense, ResponseRegisteredExpenseJson>();
+        CreateMap<Expense, ResponseShortExpenseJson>();
+        CreateMap<User, ResponseUserProfileJson>();
     }
 }
-

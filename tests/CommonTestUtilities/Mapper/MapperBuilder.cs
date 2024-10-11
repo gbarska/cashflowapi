@@ -1,18 +1,16 @@
 ﻿using AutoMapper;
 using CashFlow.Application.AutoMapper;
 
-namespace CommonTestUtilities.Mapper
+namespace CommonTestUtilities.Mapper;
+public class MapperBuilder
 {
-    public class MapperBuilder
+    public static IMapper Build()
     {
-        public static IMapper Build()
+        var mapper = new MapperConfiguration(config =>
         {
-            var mapper = new MapperConfiguration(config =>
-            {
-                config.AddProfile(new AutoMapping());
-            });
+            config.AddProfile(new AutoMapping());
+        });
 
-            return mapper.CreateMapper();
-        }
+        return mapper.CreateMapper();
     }
 }

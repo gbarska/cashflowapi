@@ -4,49 +4,54 @@ using CashFlow.Communication.Responses;
 using CashFlow.Domain.Entities;
 using CashFlow.Domain.Repositories;
 using CashFlow.Domain.Repositories.Expenses;
+using CashFlow.Domain.Services.LoggedUser;
 using CashFlow.Exception.ExceptionsBase;
 
-namespace CashFlow.Application.UseCases.Expenses.Register
+namespace CashFlow.Application.UseCases.Expenses.Register;
+public class RegisterExpenseUseCase : IRegisterExpenseUseCase
 {
-    public class RegisterExpenseUseCase : IRegisterExpenseUseCase
+    private readonly IExpensesWriteOnlyRepository _repository;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly IMapper _mapper;
+    private readonly ILoggedUser _loggedUser;
+
+    public RegisterExpenseUseCase(
+        IExpensesWriteOnlyRepository repository,
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        ILoggedUser loggedUser)
     {
-        private readonly IExpensesWriteOnlyRepository _expensesRepository;
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
+        _repository = repository;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+        _loggedUser = loggedUser;
+    }
 
-        public RegisterExpenseUseCase(
-            IExpensesWriteOnlyRepository expensesRepository, 
-            IUnitOfWork unitOfWork,
-            IMapper mapper)
+    public async Task<ResponseRegisteredExpenseJson> Execute(RequestExpenseJson request)
+    {
+        Validate(request);
+
+        var loggedUser = await _loggedUser.Get();
+
+        var expense = _mapper.Map<Expense>(request);
+        expense.UserId = loggedUser.Id;
+
+        await _repository.Add(expense);
+
+        return _mapper.Map<ResponseRegisteredExpenseJson>(expense);
+    }
+
+    private void Validate(RequestExpenseJson request)
+    {
+        var validator = new ExpenseValidator();
+
+        var result = validator.Validate(request);
+
+        if (result.IsValid == false)
         {
-            _expensesRepository = expensesRepository;
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-        }
+            var errorMessages = result.Errors.Select(f => f.ErrorMessage).ToList();
 
-        public async Task<RegisterExpenseResponse> Execute(ExpenseRequest request)
-        {
-            Validate(request);
-
-            var entity = _mapper.Map<Expense>(request);
-
-            await _expensesRepository.Add(entity);
-            //await _unitOfWork.Commit();
-
-            return _mapper.Map<RegisterExpenseResponse>(entity);
-        }
-
-        private void Validate (ExpenseRequest request)
-        {
-            var validator = new ExpenseValidator();
-            
-            var result = validator.Validate(request);
-        
-            if (result.IsValid == false)
-            {
-                var errorMessages = result.Errors.Select(f => f.ErrorMessage).ToList();
-                throw new ErrorOnValidationException(errorMessages);
-            }
+            throw new ErrorOnValidationException(errorMessages);
         }
     }
 }
