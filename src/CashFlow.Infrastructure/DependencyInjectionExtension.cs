@@ -26,8 +26,8 @@ public static class DependencyInjectionExtension
 
         if (configuration.IsTestEnvironment() == false)
         {
-            //   AddDbContext(services, configuration);
-            AddDbContextMSSQL(services, configuration);
+            AddDbContext(services, configuration);
+            //AddDbContextMSSQL(services, configuration);
         }
     }
 
@@ -58,10 +58,10 @@ public static class DependencyInjectionExtension
 
         services.AddDbContext<CashFlowDbContext>(config => config.UseMySql(connectionString, serverVersion));
     }
-    private static void AddDbContextMSSQL(IServiceCollection services, IConfiguration configuration)
-    {
-        var connectionString = configuration.GetConnectionString("Connection");
+    //private static void AddDbContextMSSQL(IServiceCollection services, IConfiguration configuration)
+    //{
+    //    var connectionString = configuration.GetConnectionString("Connection");
 
-        services.AddDbContext<CashFlowDbContext>(config => config.UseSqlServer(connectionString));
-    }
+    //    services.AddDbContext<CashFlowDbContext>(config => config.UseSqlServer(connectionString));
+    //}
 }
